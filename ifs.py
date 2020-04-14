@@ -12,7 +12,7 @@ class ChaosGame(object):
         self.canvas = tk.Canvas(root, width = 600, height = 600)
         self.canvas.pack()
 
-        #make list of vertices
+        # make list of vertices
         self.vertices = [(5, 5), (5, 300), (300, 5)]
 
         self.ratio = ratio
@@ -31,31 +31,51 @@ class ChaosGame(object):
 
 
     def drawStartingPoints(self):
+        # draws the initial vertices
         for vertex in self.vertices:
-            x = vertex[0]
-            y = vertex[1]
-            self.drawPoint(x, y, 5)
-
+            x = vertex[0] # sets x coordinate
+            y = vertex[1] # sets y coordinate
+            self.drawPoint(x, y, 5) # draws point
 
     def drawPoint(self, x, y, size):
-        c = self.canvas
-        c.create_oval(x, y, x+size, y+size, fill='black')
-        c.pack()
+        # draws a point on the canvas
+        c = self.canvas # initializes canvas
+        c.create_oval(x, y, x+size, y+size, fill='black') # creates points
+        c.pack() # organizes widget blocks before placing in parent widget
 
     def initializePoint(self):
+        # randomly chooses 2 vertices
         seed = random.choice(self.vertices)
         point1 = random.choice(self.vertices)
-        self.contraction(seed, point1)
+        # applies contraction transformations on these vertices
+        self.contraction1(seed, point1)
+        self.contraction2(seed, point1)
+        self.contraction3(seed, point1)
 
     #TODO: figure out the correct contraction equations for generalized r
-    def contraction(self, point1, point2):
+    def contraction1(self, point1, point2):
+        # transformation scales towards the origin
         r = self.ratio
         x = (point1[0] + point2[0])/r
         y = (point1[1] + point2[1])/r
+        self.currentPoint = (x, y) # set coordinates based on transformation
+        self.drawPoint(x, y, 3) # draw the point
 
-        self.currentPoint = (x, y)
-        self.drawPoint(x, y, 3)
+    def contraction2(self, point1, point2):
+        # transformation scales and translates right
+        r = self.ratio
+        x = (point1[0] + point2[0])/r + r
+        y = (point1[1] + point2[1])/r
+        self.currentPoint = (x, y) # set coordinates based on transformation
+        self.drawPoint(x, y, 3) # draw the point
 
+    def contraction3(self, point1, point2):
+        # transformation scales and translates up diagonally to the right
+        r = self.ratio
+        x = (point1[0] + point2[0])/r + 0.5*r
+        y = (point1[1] + point2[1])/r + r
+        self.currentPoint = (x, y) # set coordinates based on transformation
+        self.drawPoint(x, y, 3) # draw the point
 
 
     def play(self):
@@ -64,7 +84,9 @@ class ChaosGame(object):
         self.drawStartingPoints()
 
         while (moreDots == 1):
-            self.contraction(self.currentPoint, random.choice(self.vertices))
+            self.contraction1(self.currentPoint, random.choice(self.vertices))
+            self.contraction2(self.currentPoint, random.choice(self.vertices))
+            self.contraction3(self.currentPoint, random.choice(self.vertices))
 
             self.canvas.update()
             time.sleep(0.01)
