@@ -1,20 +1,21 @@
-import tkinter
+import tkinter as tk
 import time
 import random
 
+moreDots = 1
 
 
 class ChaosGame(object):
 
     def __init__(self, root, ratio):
         #make canvas
-        self.canvas = tkinter.Canvas(root, width = 600, height = 600)
+        self.canvas = tk.Canvas(root, width = 600, height = 600)
         self.canvas.pack()
 
         #make list of vertices
         self.vertices = [(5, 5), (5, 300), (300, 5)]
 
-        self.ratio = int(ratio)
+        self.ratio = ratio
 
         self.currentPoint = ()
         self.initializePoint()
@@ -57,35 +58,75 @@ class ChaosGame(object):
 
 
 
-moreDots = 1
+    def play(self):
+
+        moreDots = 1
+        self.drawStartingPoints()
+
+        while (moreDots == 1):
+            self.contraction(self.currentPoint, random.choice(self.vertices))
+
+            self.canvas.update()
+            time.sleep(0.01)
+
+
+
+        root.bind("<Button-1>", switch)
+
+
+
+
+
+
+
 
 if __name__ == '__main__':
 
-    ratio = input("What contraction ratio do you want? Input an integer value. \n")
+    # ratio = input("What contraction ratio do you want? Input an integer value. \n")
+    # ratio = int(ratio)
+
+
+    root = tk.Tk()
+
+    def chaosScreen():
+        print("we will now play the chaos game")
+        ratio = 2
+        game = ChaosGame(root, ratio)
+        game.play()
+
+        chaosButton.config(state="disabled")
+        otherButton.pack_forget()
 
 
 
-    root = tkinter.Tk()
 
-    w = ChaosGame(root, ratio)
-    w.drawStartingPoints()
-
+    def transformationScreen():
+        print("we will now generate custom transformations")
 
 
-    def switch(event):
-        # print("I am happen now!!!! ")
-        global moreDots
-        moreDots = 0 #TODO: make it so that we can restart when click again
+    # def switch(event):
+    #     # print("I am happen now!!!! ")
+    #     global moreDots
+    #     if moreDots = 1:
+    #         moreDots = 0 #TODO: make it so that we can restart when click again
+    #     else:
+    #         #continue playing chaos game
+    #         pass
 
-    root.bind("<Button-1>", switch)
 
-    while (moreDots == 1):
-    # print("this is current point", w.currentPoint)
-    # print("a vertex:", random.choice(w.vertices))
-        w.contraction(w.currentPoint, random.choice(w.vertices))
+    #make Chaos game button
+    chaosButton = tk.Button(root, text= "Let's play the Chaos Game", command=chaosScreen)
+    chaosButton.pack()
 
-        root.update()
-        time.sleep(0.01)
+
+    #make input your own transformation(s) button
+    otherButton = tk.Button(root, text="Enter a custom transformation", command=transformationScreen)
+    otherButton.pack()
+
+
+    #TODO: hide the buttons when we get to a screen (and then go backtracking)
+    #TODO: prevent it from starting another chaos game once one has been started (by hiding the buttons)
+
 
 
     root.mainloop()
