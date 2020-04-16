@@ -1,23 +1,35 @@
 import tkinter as tk
 import time
 import random
+from fractions import Fraction
 
 moreDots = 1
 
-
+POINT_SIZE = 2
+DRAW_SPEED = 0.0001
 
 
 class ChaosGame(object):
 
     def __init__(self, root, ratio):
         #make canvas
-        self.canvas = tk.Canvas(root, width = 600, height = 600)
+        self.canvas = tk.Canvas(root, width = 1000, height = 1000)
         self.canvas.pack()
 
         # make list of vertices
-        self.vertices = [(5, 5), (5, 300), (300, 5)]
 
-        self.ratio = ratio
+        # triangle
+        self.vertices = [(5, 500), (500, 500), (300, 5)]
+
+        # pentagon
+        self.vertices = [(300,200),
+                            (205,269),
+                            (241,381),
+                            (359,381),
+                            (395,269)
+                            ]
+
+        self.ratio = ratio #ratio = a fraction
         self.currentPoint = ()
 
 
@@ -31,11 +43,6 @@ class ChaosGame(object):
     # (throw out the first few points)
 
 
-    def drawStartingPoints(self):
-        # draws the initial vertices
-        for vertex in self.vertices:
-            self.drawPoint(vertex, 5) # draws point
-
     def drawPoint(self, vertex, size):
         # draws a point on the canvas
         x = vertex[0]
@@ -43,6 +50,10 @@ class ChaosGame(object):
         self.canvas.create_oval(x, y, x+size, y+size, fill='black') # creates points
         self.canvas.pack() # organizes widget blocks before placing in parent widget
 
+    def drawStartingPoints(self):
+        # draws the initial vertices
+        for vertex in self.vertices:
+            self.drawPoint(vertex, 5) # draws point
 
     def initializePoint(self):
         # randomly chooses 2 vertices
@@ -56,32 +67,34 @@ class ChaosGame(object):
     def contraction1(self, point1, point2):
         # transformation scales towards the origin
         r = self.ratio
-        x = (point1[0] + point2[0])/r
-        y = (point1[1] + point2[1])/r
+        x = float((point1[0] + point2[0]) * r)
+        y = float((point1[1] + point2[1]) * r)
         return (x, y) # return result of contraction
 
-    def contraction2(self, point1, point2):
+
+    # def contraction2(self, point1, point2):
         # transformation scales and translates right
-        r = self.ratio
-        x = (point1[0] + point2[0])/r + r
-        y = (point1[1] + point2[1])/r
-        return (x, y) # return result of contraction
+        # r = self.ratio
+        # x = (point1[0] + point2[0])* r + r #TODO: r is fraction
+        # y = (point1[1] + point2[1])* r
+        # return (x, y) # return result of contraction
 
-    def contraction3(self, point1, point2):
+    # def contraction3(self, point1, point2):
         # transformation scales and translates up diagonally to the right
-        r = self.ratio
-        x = (point1[0] + point2[0])/r + 0.5*r
-        y = (point1[1] + point2[1])/r + 0.5*r
-        return (x, y) # return result of contraction
+        # r = self.ratio
+        # x = (point1[0] + point2[0])*r + 0.5*r #TODO: r is fraction
+        # y = (point1[1] + point2[1])*r + 0.5*r
+        # return (x, y) # return result of contraction
+
 
 
     def applyTransformation(self, point1, point2):
         # apply each of the three contractions to the point
         newPoint1 = self.contraction1(point1, point2)
-        newPoint2 = self.contraction2(newPoint1, point2)
-        newPoint3 = self.contraction3(newPoint2, point2)
-        self.currentPoint = newPoint3
-        self.drawPoint(newPoint3, 3) # draw the translated point
+        # newPoint2 = self.contraction2(newPoint1, point2)
+        # newPoint3 = self.contraction3(newPoint2, point2)
+        self.currentPoint = newPoint1
+        self.drawPoint(newPoint1, POINT_SIZE) # draw the translated point
 
 
 
@@ -96,7 +109,7 @@ class ChaosGame(object):
             self.applyTransformation(self.currentPoint, random.choice(self.vertices))
 
             self.canvas.update()
-            time.sleep(0.01)
+            time.sleep(DRAW_SPEED)
 
 
         root.bind("<Button-1>", switch)
@@ -118,21 +131,37 @@ def preChaosScreen():
 
 
     #create box for user to input contraction ratio
-    ratioLabel = tk.Label(root, text="What contraction ratio do you want? Input an integer value.")
+    ratioLabel = tk.Label(root, text="What contraction ratio do you want?")
     ratioLabel.grid(row=0)
-    ratioEntry = tk.Entry(root)
-    ratioEntry.grid(row=0, column=1)
+    ratioNumLabel = tk.Label(root, text="Numerator:")
+    ratioNumLabel.grid(row=1, column=0)
+    ratioNum = tk.Entry(root)
+    ratioNum.grid(row=1, column=1)
+
+    ratioDenomLabel = tk.Label(root, text="Denominator:")
+    ratioDenomLabel.grid(row=1, column=2)
+    ratioDenom = tk.Entry(root)
+    ratioDenom.grid(row=1, column=3)
+
 
 
     def executeChaos():
-        #get the input from the entry field
-        ratio = ratioEntry.get()
-        ratio = int(ratio) #TODO: check for improper (non-integer) inputs
-        print("the ratio is, ", ratio)
+        #get the input from the entry fields
+        numerator = ratioNum.get()
+        numerator = int(numerator) #TODO: check for improper (non-integer) inputs
+
+        denominator = ratioDenom.get()
+        denominator = int(denominator) #TODO: check for improper (non-integer) inputs
+
+        ratio = Fraction(numerator, denominator)
+        print("the ratio is ", ratio)
 
         #hide the input fields from previous screen
         ratioLabel.grid_forget()
-        ratioEntry.grid_forget()
+        ratioNumLabel.grid_forget()
+        ratioNum.grid_forget()
+        ratioDenomLabel.grid_forget()
+        ratioDenom.grid_forget()
         ratioSubmit.grid_forget()
 
         #play chaos game
@@ -142,7 +171,7 @@ def preChaosScreen():
 
 
     ratioSubmit = tk.Button(root, text="Submit", command=executeChaos)
-    ratioSubmit.grid(row=0, column=2)
+    ratioSubmit.grid(row=2, column=0)
 
 
 
