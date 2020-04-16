@@ -5,8 +5,9 @@ from fractions import Fraction
 
 moreDots = 1
 
-POINT_SIZE = 2
-DRAW_SPEED = 0.0001
+POINT_SIZE = 2 #size to draw each point
+DRAW_SPEED = 0.0001 #wait length between drawing points
+CENTER = (300, 300) # center of the starting vertices
 
 
 class ChaosGame(object):
@@ -16,18 +17,24 @@ class ChaosGame(object):
         self.canvas = tk.Canvas(root, width = 1000, height = 1000)
         self.canvas.pack()
 
-        # make list of vertices
+        # make list of vertices.
+        # vertices source: https://mathopenref.com/coordpolycalc.html
 
         # triangle
-        self.vertices = [(5, 500), (500, 500), (300, 5)]
+        # centered at (300, 300 )
+        # self.vertices = [(300, 0),
+        #                 (40, 450),
+        #                 (560,450)]
 
-        # pentagon
+        #pentagon
+        # centered at (300, 300), radius = 100
         self.vertices = [(300,200),
                             (205,269),
                             (241,381),
                             (359,381),
                             (395,269)
                             ]
+
 
         self.ratio = ratio #ratio = a fraction
         self.currentPoint = ()
@@ -87,12 +94,23 @@ class ChaosGame(object):
         # return (x, y) # return result of contraction
 
 
+    def moveToOrigin(self, point):
+        return (point[0] - CENTER[0], point[1] - CENTER[1])
+
+    def moveFromOrigin(self, point):
+        return (point[0] + CENTER[0], point[1] + CENTER[1])
+
 
     def applyTransformation(self, point1, point2):
         # apply each of the three contractions to the point
-        newPoint1 = self.contraction1(point1, point2)
+        point1o = self.moveToOrigin(point1)
+        point2o = self.moveToOrigin(point2)
+
+        newPoint1 = self.contraction1(point1o, point2o)
         # newPoint2 = self.contraction2(newPoint1, point2)
         # newPoint3 = self.contraction3(newPoint2, point2)
+
+        newPoint1 = self.moveFromOrigin(newPoint1)
         self.currentPoint = newPoint1
         self.drawPoint(newPoint1, POINT_SIZE) # draw the translated point
 
@@ -104,6 +122,7 @@ class ChaosGame(object):
 
         self.drawStartingPoints()
         self.initializePoint()
+
 
         while (moreDots == 1):
             self.applyTransformation(self.currentPoint, random.choice(self.vertices))
@@ -148,25 +167,29 @@ def preChaosScreen():
     def executeChaos():
         #get the input from the entry fields
         numerator = ratioNum.get()
-        numerator = int(numerator) #TODO: check for improper (non-integer) inputs
-
         denominator = ratioDenom.get()
-        denominator = int(denominator) #TODO: check for improper (non-integer) inputs
 
-        ratio = Fraction(numerator, denominator)
-        print("the ratio is ", ratio)
+        if not (numerator.isnumeric() and denominator.isnumeric()): #if the input is not an integer, give a warning box
+             tk.messageBox.showerror("Inputs must be integers!")
 
-        #hide the input fields from previous screen
-        ratioLabel.grid_forget()
-        ratioNumLabel.grid_forget()
-        ratioNum.grid_forget()
-        ratioDenomLabel.grid_forget()
-        ratioDenom.grid_forget()
-        ratioSubmit.grid_forget()
+        else:
+            numerator = int(numerator)
+            denominator = int(denominator)
 
-        #play chaos game
-        game = ChaosGame(root, ratio)
-        game.play()
+            ratio = Fraction(numerator, denominator)
+            print("the ratio is ", ratio)
+
+            #hide the input fields from previous screen
+            ratioLabel.grid_forget()
+            ratioNumLabel.grid_forget()
+            ratioNum.grid_forget()
+            ratioDenomLabel.grid_forget()
+            ratioDenom.grid_forget()
+            ratioSubmit.grid_forget()
+
+            #play chaos game
+            game = ChaosGame(root, ratio)
+            game.play()
 
 
 
