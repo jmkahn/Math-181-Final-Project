@@ -1,4 +1,5 @@
 import tkinter as tk
+from tkinter import messagebox
 import time
 import random
 from fractions import Fraction
@@ -170,7 +171,7 @@ def preChaosScreen():
         denominator = ratioDenom.get()
 
         if not (numerator.isnumeric() and denominator.isnumeric()): #if the input is not an integer, give a warning box
-             tk.messageBox.showerror("Inputs must be integers!")
+             messagebox.showinfo("Error", "Inputs must be integers!")
 
         else:
             numerator = int(numerator)
