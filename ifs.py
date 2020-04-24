@@ -4,18 +4,19 @@ import time
 import random
 from fractions import Fraction
 
-#canvas dimensions
-WIDTH = 800
+# interface colors
+DEFAULT_BUTTON_COLOR = 'gray85' #colors: http://www.science.smith.edu/dftwiki/index.php/Color_Charts_for_TKinter
+CLICKED_BUTTON_COLOR = 'IndianRed3'
+CANVAS_COLOR = 'snow'
+
+# drawing/canvas constants
+WIDTH = 800 #canvas dimensions
 HEIGHT = 800
-
-
-moreDots = 1
-aButtonWasPressed = 0
-
 LARGE_POINT_SIZE = 5 #size to draw vertices
 POINT_SIZE = 1 #size to draw each point
-DRAW_SPEED = 0.0001 #wait length between drawing points
+DRAW_SPEED = 0.000001 #wait length between drawing points
 CENTER = (400, 400) # center of the starting vertices
+DRAW_COLOR_LIST = ['#00aedb', '#a200ff', '#f47835', '#d41243', '#8ec127'] #source: https://www.color-hex.com/color-palette/471
 
 
 #vertex lists
@@ -32,18 +33,11 @@ PENTAGON = [(400,0), (20,276), (165,724), (635,724), (780,276)]
 
 
 
-# interface colors
-DEFAULT_BUTTON_COLOR = 'PaleTurquoise1' #colors: http://www.science.smith.edu/dftwiki/index.php/Color_Charts_for_TKinter
-CLICKED_BUTTON_COLOR = 'IndianRed3'
-CANVAS_COLOR = 'thistle1'
-
 class ChaosGame(object):
-
 
     def __init__(self, ratio, shape):
 
         self.vertices = self.setVertices(shape)
-
 
         self.ratio = ratio #ratio = a fraction
         self.currentPoint = ()
@@ -131,6 +125,29 @@ class ChaosGame(object):
         # return (x, y) # return result of contraction
 
 
+class FractalTransform():
+
+    def __init__(self):
+        self.contraction = [[0, 0], [0, 0]] #2x2 matrix
+        self.translation = [[0], [0]] #1x2 matrix
+        self.probability
+
+
+    def evaluateTransformation(self, point): #takes in a point, applies itself to the point: [contraction]*[point] + [translation]. returns the result.
+        pass
+
+
+class IFS3():
+    def __init__(self):
+        listOfTransforms = [] #list of FractalTransforms
+        self.currentPoint = (0, 0) #TODO: this should maybe in a matrix form?
+
+
+    def applyTransformation(self):
+        pass
+
+
+
 
 class GUI(Frame):
 
@@ -142,6 +159,11 @@ class GUI(Frame):
         self.packedWidgets = []
         self.shape_button_list = []
 
+        # variables I use to keep track of whether something happened or not
+        self.moreDots = 1
+        self.aButtonWasPressed = 0
+
+        self.color = 0
         self.shape = ''
 
         self.homeScreen()
@@ -149,8 +171,7 @@ class GUI(Frame):
 
     #functions to set which shape we'll play the chaos game with
     def setTriangle(self):
-        global aButtonWasPressed
-        aButtonWasPressed = 1
+        self.aButtonWasPressed = 1
 
         self.shape = 'triangle'
         for button in self.shape_button_list:
@@ -158,8 +179,7 @@ class GUI(Frame):
         self.shape_button_list[0]['background']= CLICKED_BUTTON_COLOR
 
     def setSquare(self):
-        global aButtonWasPressed
-        aButtonWasPressed = 1
+        self.aButtonWasPressed = 1
 
         self.shape = 'square'
         for button in self.shape_button_list:
@@ -167,8 +187,7 @@ class GUI(Frame):
         self.shape_button_list[1]['background']= CLICKED_BUTTON_COLOR
 
     def setPentagon(self):
-        global aButtonWasPressed
-        aButtonWasPressed = 1
+        self.aButtonWasPressed = 1
 
         self.shape = 'pentagon'
         for button in self.shape_button_list:
@@ -181,7 +200,7 @@ class GUI(Frame):
         '''draws a point on the canvas'''
         x = vertex[0]
         y = vertex[1]
-        self.canvas.create_oval(x, y, x+point_size, y+point_size, fill=color_fill) # creates points
+        self.canvas.create_oval(x, y, x+point_size, y+point_size, outline=color_fill, fill=color_fill) # creates points
 
 
     def homeScreen(self):
@@ -231,13 +250,25 @@ class GUI(Frame):
         ratioDash = tk.Label(root, text="/")
         self.ratioDenom = tk.Entry(root)
 
+        self.colorToggle = tk.Button(root, text="Add coloring", bg=DEFAULT_BUTTON_COLOR, command=self.toggleColor)
+
         ratioSubmit = tk.Button(root, text="Submit", bg=DEFAULT_BUTTON_COLOR, command=self.executeChaos)
 
-        self.preChaosWidgets = [verticesLabel, triButton, squareButton, pentButton, ratioLabel, noteLabel, self.ratioNum, ratioDash, self.ratioDenom, ratioSubmit]
+        self.preChaosWidgets = [verticesLabel, triButton, squareButton, pentButton, ratioLabel, noteLabel, self.ratioNum, ratioDash, self.ratioDenom, self.colorToggle, ratioSubmit]
 
         for widget in self.preChaosWidgets:
             self.packWidget(widget)
 
+
+    def toggleColor(self):
+        if self.color == 0:
+            #change button color to pressed
+            self.colorToggle['background'] = CLICKED_BUTTON_COLOR
+        else:
+            #change button color to white
+            self.colorToggle['background'] = DEFAULT_BUTTON_COLOR
+        self.color += 1
+        self.color = self.color % 2
 
 
     def executeChaos(self):
@@ -261,12 +292,10 @@ class GUI(Frame):
         # self.canvas.pack(fill=BOTH, side=TOP)
         self.packWidget(self.canvas)
 
-        global aButtonWasPressed
-
         if not(numerator.isnumeric() and denominator.isnumeric()): #if the input is not an integer, give a warning box
              messagebox.showinfo("Error", "Inputs must be integers!")
 
-        elif aButtonWasPressed == 0:
+        elif self.aButtonWasPressed == 0:
             messagebox.showinfo("Error", "Please choose a number of vertices!")
 
         else:
@@ -275,7 +304,7 @@ class GUI(Frame):
 
             ratio = Fraction(numerator, denominator)
 
-            aButtonWasPressed = 0
+            self.aButtonWasPressed = 0
             game = ChaosGame(ratio, self.shape)
             self.playChaos(game)
 
@@ -287,36 +316,47 @@ class GUI(Frame):
             self.drawPoint(vertex, LARGE_POINT_SIZE)
 
         game.initializePoint() #set first point
-
-        global moreDots
-        moreDots = 1
+        self.drawPoint(game.currentPoint, POINT_SIZE) # draw point
 
 
-        while moreDots == 1:
-            self.drawPoint(game.currentPoint, POINT_SIZE) # draw the translated point
-            game.applyTransformation(game.currentPoint, random.choice(game.vertices))
+        self.moreDots = 1
+
+        while self.moreDots == 1:
+            vertexIndex = random.choice(range(len(game.vertices)))
+            currentVertex = game.vertices[vertexIndex]
+            game.applyTransformation(game.currentPoint, currentVertex)
+
+            if self.color == 1:
+                currentColor = DRAW_COLOR_LIST[vertexIndex]
+                self.drawPoint(game.currentPoint, POINT_SIZE, currentColor) # draw the translated point
+            else:
+                self.drawPoint(game.currentPoint, POINT_SIZE) # draw the translated point
 
             self.canvas.update()
             time.sleep(DRAW_SPEED)
 
 
     def goBacktoPreChaos(self):
-        global moreDots
-        moreDots = 0
+        self.moreDots = 0
+        self.color = 0
         self.canvas.delete("all")
 
         self.hidePackedWidgets()
         self.preChaosScreen()
 
     def goBacktoHomeScreen(self):
-        global moreDots
-        moreDots = 0
+        self.moreDots = 0
+        self.color = 0
         self.canvas.delete("all")
 
         self.hidePackedWidgets()
         self.homeScreen()
 
     def inputTransformation(self):
+
+        #input three affine transformations
+
+        #get the data from it
         pass
 
 
