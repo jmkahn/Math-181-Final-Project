@@ -56,22 +56,6 @@ class ChaosGame(object):
         elif shape == 'hexagon':
             return HEXAGON
 
-
-    #Chaos game:
-
-    #start with three vertices as points of the triangle (red, blue, green)
-    #randomly choose one of the points (this is the seed)
-    #randomly choose another point - draw a point halfway between the seed point and this point
-    # then repeat, each time moving the previous point half the distance to the vertex which is chosen
-    # (throw out the first few points)
-
-    #
-    #
-    # def drawStartingPoints(self):
-    #     '''draws the initial vertices'''
-    #     for vertex in self.vertices:
-    #         self.drawPoint(vertex, 5) # draws point
-
     def initializePoint(self):
         '''plays the first iteration of the Chaos game'''
         # randomly chooses 2 vertices
@@ -81,7 +65,6 @@ class ChaosGame(object):
         # applies contraction transformations on these vertices
         self.applyTransformation(seed, point1)
 
-
     def contraction1(self, point1, point2):
 
         # transformation scales towards the origin
@@ -90,13 +73,11 @@ class ChaosGame(object):
         y = float((point1[1] + point2[1]) * r)
         return (x, y) # return result of contraction
 
-
     def moveToOrigin(self, point):
         return (point[0] - CENTER[0], point[1] - CENTER[1])
 
     def moveFromOrigin(self, point):
         return (point[0] + CENTER[0], point[1] + CENTER[1])
-
 
     def applyTransformation(self, point1, point2):
         '''executes a single step of the chaos game'''
@@ -112,30 +93,19 @@ class ChaosGame(object):
         newPoint1 = self.moveFromOrigin(newPoint1)
         self.currentPoint = newPoint1
 
-
-
-    # def contraction2(self, point1, point2):
-        # transformation scales and translates right
-        # r = self.ratio
-        # x = (point1[0] + point2[0])* r + r #TODO: r is fraction
-        # y = (point1[1] + point2[1])* r
-        # return (x, y) # return result of contraction
-
-    # def contraction3(self, point1, point2):
-        # transformation scales and translates up diagonally to the right
-        # r = self.ratio
-        # x = (point1[0] + point2[0])*r + 0.5*r #TODO: r is fraction
-        # y = (point1[1] + point2[1])*r + 0.5*r
-        # return (x, y) # return result of contraction
-
-
 class FractalTransform():
 
-    def __init__(self):
-        self.contraction = [[0, 0], [0, 0]] #2x2 matrix
-        self.translation = [[0], [0]] #1x2 matrix
-        self.probability = 0 #a float value between 0 and 1
+    def __init__(self, matrixInputFrame):
+        data = []
+        for item in matrixInputFrame.allFields:
+            entry = float(item.get())
+            data.append(entry)
 
+        self.contraction = [[data[0], data[1]], #2x2 matrix
+                            [data[2], data[3]]]
+        self.translation = [[data[4]], #1x2 matrix
+                            [data[5]]]
+        self.probability = data[6]  #a float value between 0 and 1
 
     def transformPoint(self, point): #
         '''takes in a point in the form (x, y), applies itself to the point: [contraction]*[point] + [translation]. returns the result'''
@@ -154,15 +124,13 @@ class FractalTransform():
         newY = c*x + d*y + f
         return (newX, newY)
 
-
 class IFS3():
-    def __init__(self):
-        listOfTransforms = [] #list of FractalTransforms
-        self.currentPoint = (0, 0) #TODO: this should maybe in a matrix form?
+    def __init__(self, transformList):
+        self.listOfTransforms = transformList #list of FractalTransforms
+        self.currentPoint = (0, 0)
 
 
     def pickTransformation(self):
-        pass
         #extract probabilities from each transformation
         p1 = self.listOfTransforms[0].probability
         p2 = self.listOfTransforms[1].probability
@@ -188,7 +156,86 @@ class IFS3():
         #apply that transformation to the current point and update current point
         self.currentPoint = transformation.transformPoint(self.currentPoint)
 
+class MatrixInputFrame(Frame):
 
+    def __init__(self, number):
+        super().__init__()
+
+        self.initUI(number)
+
+    def initUI(self, number):
+
+        for n in range(12):
+            self.columnconfigure(n, pad=3)
+
+        for n in range(4):
+            self.rowconfigure(n, pad=3)
+
+
+        label1 = Label(self, text="Transformation "+str(number))
+        label1.grid(row=0)
+
+
+        paren1 = Label(self, text="(")
+        paren1.config(font=("Courier", 22))
+        paren1.grid(row=1, column=0, rowspan=2, sticky=tk.E)
+
+
+        aEntry = Entry(self)
+        aEntry.grid(row=1, column=1)
+        bEntry = Entry(self)
+        bEntry.grid(row=1, column=2)
+        cEntry = Entry(self)
+        cEntry.grid(row=2, column=1)
+        dEntry = Entry(self)
+        dEntry.grid(row=2, column=2)
+
+
+        paren2 = Label(self, text=")")
+        paren2.config(font=("Courier", 22))
+        paren2.grid(row=1, column=3, rowspan=2, sticky=tk.W)
+
+
+        paren3 = Label(self, text="(")
+        paren3.config(font=("Courier", 22))
+        paren3.grid(row=1, column=4, rowspan=2, sticky=tk.E)
+
+        xLabel = Label(self, text= "x")
+        xLabel.grid(row=1, column= 5)
+        yLabel = Label(self, text= "y")
+        yLabel.grid(row=2, column= 5)
+
+        paren4 = Label(self, text=")")
+        paren4.config(font=("Courier", 22))
+        paren4.grid(row=1, column=6, rowspan=2, sticky=tk.W)
+
+
+        addLabel = Label(self, text="+")
+        addLabel.config(font=("Courier", 16))
+        addLabel.grid(row=1, column=7, rowspan=2)
+
+
+        paren5 = Label(self, text="(")
+        paren5.config(font=("Courier", 22))
+        paren5.grid(row=1, column=8, rowspan=2, sticky=tk.E)
+
+        eEntry = Entry(self)
+        eEntry.grid(row=1, column=9)
+        fEntry = Entry(self)
+        fEntry.grid(row=2, column=9)
+
+        paren6 = Label(self, text=")")
+        paren6.config(font=("Courier", 22))
+        paren6.grid(row=1, column=10, rowspan=2, sticky=tk.W)
+
+        pLabel = Label(self, text="p = ")
+        pLabel.config(font=("Courier", 16))
+        pLabel.grid(row = 3, column=7, columnspan=2)
+
+        pEntry = Entry(self)
+        pEntry.grid(row=3, column=9)
+
+        self.allFields = [aEntry, bEntry, cEntry, dEntry, eEntry, fEntry, pEntry]
 
 class GUI(Frame):
 
@@ -209,8 +256,6 @@ class GUI(Frame):
 
         self.homeScreen()
 
-
-
 ############### GENERAL METHODS ####################
     def homeScreen(self):
 
@@ -226,7 +271,6 @@ class GUI(Frame):
         otherButton =  Button(root, text="Enter a custom transformation", command=self.inputTransformation)
         self.packWidget(otherButton)
 
-
     def goBacktoHomeScreen(self):
         '''takes us back to the home screen'''
         self.moreDots = 0
@@ -236,10 +280,9 @@ class GUI(Frame):
         self.hidePackedWidgets()
         self.homeScreen()
 
-
-    def packWidget(self, widget):
+    def packWidget(self, widget, pady=1):
         '''packs a widget (adds to GUI) and adds it to the list of currently packed widgets'''
-        widget.pack()
+        widget.pack(pady=pady)
         self.packedWidgets.append(widget)
 
     def hidePackedWidgets(self):
@@ -248,8 +291,20 @@ class GUI(Frame):
             widget.pack_forget()
         self.packedWidgets.clear()
 
+    def createCanvas(self):
+        #go back button
+        backButton = Button(root, text="Go Back", bg=DEFAULT_BUTTON_COLOR, command=self.goBacktoPreChaos)
+        homeButton = Button(root, text="Home", bg=DEFAULT_BUTTON_COLOR, command=self.goBacktoHomeScreen)
 
+        self.packWidget(backButton)
+        self.packWidget(homeButton)
 
+        self.canvas = Canvas(self.root,
+                            width = WIDTH,
+                            height = HEIGHT,
+                            bg = CANVAS_COLOR)
+        # self.canvas.pack(fill=BOTH, side=TOP)
+        self.packWidget(self.canvas)
 
 #############CHAOS GAME METHODS####################
     #functions to set which shape we'll play the chaos game with
@@ -285,14 +340,11 @@ class GUI(Frame):
             button['background'] = DEFAULT_BUTTON_COLOR
         self.shape_button_list[3]['background']= CLICKED_BUTTON_COLOR
 
-
-
-    def drawPoint(self, vertex, point_size, color_fill='black'):
+    def drawPoint(self, vertex, point_size = POINT_SIZE, color_fill='black'):
         '''draws a point on the canvas'''
         x = vertex[0]
         y = vertex[1]
         self.canvas.create_oval(x, y, x+point_size, y+point_size, outline=color_fill, fill=color_fill) # creates points
-
 
     def preChaosScreen(self):
         self.hidePackedWidgets() #clear previous widgets
@@ -328,7 +380,6 @@ class GUI(Frame):
         for widget in self.preChaosWidgets:
             self.packWidget(widget)
 
-
     def toggleColor(self):
         if self.color == 0:
             #change button color to pressed
@@ -339,29 +390,17 @@ class GUI(Frame):
         self.color += 1
         self.color = self.color % 2
 
-
     def executeChaos(self):
         '''creates the screen that comes after the user inputs their settings.
-        sets up the canvas and checks to make sure the inputs were valid'''
+        sets up the canvas and checks to make sure the inputs were valid. then
+        displays the chaos game on the screen '''
         #get the input from the entry fields
         numerator = self.ratioNum.get()
         denominator = self.ratioDenom.get()
 
         self.hidePackedWidgets() #clear previous widgets
 
-        #go back button
-        backButton = Button(root, text="Go Back", bg=DEFAULT_BUTTON_COLOR, command=self.goBacktoPreChaos)
-        homeButton = Button(root, text="Home", bg=DEFAULT_BUTTON_COLOR, command=self.goBacktoHomeScreen)
-
-        self.packWidget(backButton)
-        self.packWidget(homeButton)
-
-        self.canvas = Canvas(self.root,
-                            width = WIDTH,
-                            height = HEIGHT,
-                            bg = CANVAS_COLOR)
-        # self.canvas.pack(fill=BOTH, side=TOP)
-        self.packWidget(self.canvas)
+        self.createCanvas()
 
         if not(numerator.isnumeric() and denominator.isnumeric()): #if the input is not an integer, give a warning box
              messagebox.showinfo("Error", "Inputs must be integers!")
@@ -378,9 +417,6 @@ class GUI(Frame):
             self.aButtonWasPressed = 0
             game = ChaosGame(ratio, self.shape)
             self.playChaos(game)
-
-
-
 
     def playChaos(self, game):
         '''iterates the chaos game and draws a point after each iteration'''
@@ -407,7 +443,6 @@ class GUI(Frame):
             self.canvas.update()
             time.sleep(DRAW_SPEED)
 
-
     def goBacktoPreChaos(self):
         '''takes us back to the screen for inputting settings'''
         self.moreDots = 0
@@ -417,111 +452,54 @@ class GUI(Frame):
         self.hidePackedWidgets()
         self.preChaosScreen()
 
-
 ################## Input your own Transformation Methods ##########################
-
 
     def inputTransformation(self):
         self.hidePackedWidgets() #clear previous widgets
 
-        #input three affine transformations
+        explanationText = Text(root, height=6)
+        explanationText.insert(tk.END, "this is where explain what the boxes mean and what p means")
+        self.packWidget(explanationText)
 
-        class MatrixInputFrame(Frame):
-
-            def __init__(self, number):
-                super().__init__()
-
-                self.initUI(number)
-
-            def initUI(self, number):
-
-                # self.columnconfigure(0, pad=3)
-                # self.columnconfigure(1, pad=3)
-                # self.columnconfigure(2, pad=30)
-                # self.columnconfigure(3, pad=30)
-                # self.columnconfigure(4, pad=3)
-                #
-                #
-                # self.rowconfigure(0, pad=3)
-                # self.rowconfigure(1, pad=3)
-                # self.rowconfigure(2, pad=0)
-                # self.rowconfigure(3, pad=3)
-                # self.rowconfigure(4, pad=3)
-
-
-
-                label1 = Label(self, text="Tranformation "+str(number))
-                label1.grid(row=0)
-
-
-                paren1 = Label(self, text="(")
-                paren1.config(font=("Courier", 22))
-                paren1.grid(row=1, column=0, rowspan=2, sticky=tk.E)
-
-
-                aEntry = Entry(self)
-                aEntry.grid(row=1, column=1)
-                bEntry = Entry(self)
-                bEntry.grid(row=1, column=2)
-                cEntry = Entry(self)
-                cEntry.grid(row=2, column=1)
-                dEntry = Entry(self)
-                dEntry.grid(row=2, column=2)
-
-
-                paren2 = Label(self, text=")")
-                paren2.config(font=("Courier", 22))
-                paren2.grid(row=1, column=3, rowspan=2, sticky=tk.W)
-
-
-                paren3 = Label(self, text="(")
-                paren3.config(font=("Courier", 22))
-                paren3.grid(row=1, column=4, rowspan=2, sticky=tk.E)
-
-                xLabel = Label(self, text= "x")
-                xLabel.grid(row=1, column= 5)
-                yLabel = Label(self, text= "y")
-                yLabel.grid(row=2, column= 5)
-
-                paren4 = Label(self, text=")")
-                paren4.config(font=("Courier", 22))
-                paren4.grid(row=1, column=6, rowspan=2, sticky=tk.W)
-
-
-                addLabel = Label(self, text="+")
-                addLabel.config(font=("Courier", 16))
-                addLabel.grid(row=1, column=7, rowspan=2)
-
-
-                paren5 = Label(self, text="(")
-                paren5.config(font=("Courier", 22))
-                paren5.grid(row=1, column=8, rowspan=2, sticky=tk.E)
-
-                eEntry = Entry(self)
-                eEntry.grid(row=1, column=9)
-                fEntry = Entry(self)
-                fEntry.grid(row=2, column=9)
-
-                test = Label(self, text=")")
-                test.config(font=("Courier", 22))
-                test.grid(row=1, column=10, rowspan=2, sticky=tk.W)
-
-                self.pack()
-
-
-        list = []
+        self.inputFrames = []
         for n in range(1, 4):
-            name = "w" + str(n)
-            name = MatrixInputFrame(n)
-            list.append(name)
+            inputFrame = MatrixInputFrame(n)
+            self.inputFrames.append(inputFrame)
+            self.packWidget(inputFrame, pady=10)
 
 
+        submit = Button(root, text="Submit", bg=DEFAULT_BUTTON_COLOR, command=self.nextThing)
+        self.packWidget(submit)
+
+    def nextThing(self):
+        # create each transformation object
+        transformList = []
+        for i in range(len(self.inputFrames)):
+            transformList.append(FractalTransform(self.inputFrames[i]))
+
+        # create the set of transformations object (IFS3)
+        ifsObj = IFS3(transformList)
+
+        self.hidePackedWidgets()
+        #TODO: check that probabilities all add up to 1
+
+        #TODO: if a field wasn't filled, automatically populate it with 0
+        self.createCanvas()
+
+        self.moreDots = 1
+        while self.moreDots == 1:
+            #draw point
+            self.drawPoint(ifsObj.currentPoint)
+            #iterate IFS
+            ifsObj.iterateIFS()
+
+            self.canvas.update()
+            time.sleep(DRAW_SPEED)
 
 
 
 
 if __name__ == '__main__':
-
 
     root = Tk() #make main window
 
@@ -531,7 +509,5 @@ if __name__ == '__main__':
     #game.start()
 
     gui = GUI(root) #initialize buttons and stuff
-
-
 
     root.mainloop()
