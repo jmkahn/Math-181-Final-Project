@@ -260,9 +260,9 @@ class GUI(Frame):
     def homeScreen(self):
 
 
-        welcome = Text(root, height=6)
+        welcome = Text(root, height=18)
         self.packWidget(welcome)
-        welcome.insert(tk.END, "Welcome to an interactive exploration of Iterated Fractal Systems (IFS) \nby Jenna and Cassidy!\n more text \nmore text more text \nexplaining what this is ")
+        welcome.insert(tk.END, "Welcome to an interactive exploration of Iterated Fractal Systems (IFS) \nby Jenna and Cassidy!\n\nFor some math background, an IFS is a complete metric space paired with a\nfinite set of contraction mappings. A cool theorem states that the set of\nall contraction mappings of an IFS is also a contraction mapping (resulting\nin fractals!). Because of this, every IFS has a unique fixed point called\nan attractor. In other words, an IFS is a metric space that consists of many\nsequences that converge to exactly one unique fixed point called an attractor.\n\nIn this interactive tool, we hope to help you understand fractals better by\ngiving you the tools to visualize how a fractal is generated. We have 2 options\nbelow: playing with preset options that produce fractals for different polygons\nusing the Chaos Game, or entering custom transformations that creates your own\nfractal pattern for a triangle.\n\nFeel free to choose between the 2 options by clicking 1 of the butons below! ")
         #make Chaos game button
         chaosButton = Button(root, text= "Let's play the Chaos Game", command=self.preChaosScreen)
         self.packWidget(chaosButton)
@@ -349,6 +349,9 @@ class GUI(Frame):
     def preChaosScreen(self):
         self.hidePackedWidgets() #clear previous widgets
 
+        explanationText = Text(root, height=6)
+        explanationText.insert(tk.END, "Chaos Game is a recursive algorithm that produces fractals. It starts by\nchoosing a random point inside a regular n-sided polygon, such as a triangle,\nsquare, pentagon, or hexagon. Then, draw the next point a fraction (contraction\nratio) of the distance between the first random point and a randomly chosen\nvertex of the n original vertices of the polygon. The process continues by\nrepeatedly drawing new points using the same fractional distance idea.")
+        self.packWidget(explanationText)
 
         # create buttons for user to select number of vertices
         verticesLabel = Label(root, text="Select the starting configuration of vertices.")
@@ -457,8 +460,8 @@ class GUI(Frame):
     def inputTransformation(self):
         self.hidePackedWidgets() #clear previous widgets
 
-        explanationText = Text(root, height=6)
-        explanationText.insert(tk.END, "this is where explain what the boxes mean and what p means")
+        explanationText = Text(root, height=15)
+        explanationText.insert(tk.END, "Fractals can be created by using probability and recursion of transformations.\nEssentially, you can create a fractal by applying set transformations, each with\nan associated probability of occurring, to produce new points (with x-coordinate\nand y-coordinate). This means that every time you produce a new point, it is\ndone by applying a transformation that is determined based on its probability of\nbeing chosen.\n\nIn this case, you can create 3 different transformations, each of which you can set its probability (p) of occurring. Each transformation consists of a scaling matrix (4 inputs), which scale the x- and y-coordinates, as well as a\ntranslation vector, which shifts the x- and y-coordinates.\n\nNote: The transformations create cooler fractals when the input values are less than 1. Also, the probabilities (p) must sum to 1.")
         self.packWidget(explanationText)
 
         self.inputFrames = []
