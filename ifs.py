@@ -15,6 +15,7 @@ HEIGHT = 800
 LARGE_POINT_SIZE = 5 #size to draw vertices
 POINT_SIZE = 1 #size to draw each point
 DRAW_SPEED = 0.000001 #wait length between drawing points
+RADIUS = 400
 CENTER = (400, 400) # center of the starting vertices
 
 
@@ -103,9 +104,12 @@ class FractalTransform():
 
         self.contraction = [[data[0], data[1]], #2x2 matrix
                             [data[2], data[3]]]
+
         self.translation = [[data[4]], #1x2 matrix
                             [data[5]]]
+
         self.probability = data[6]  #a float value between 0 and 1
+
 
     def transformPoint(self, point): #
         '''takes in a point in the form (x, y), applies itself to the point: [contraction]*[point] + [translation]. returns the result'''
@@ -113,6 +117,7 @@ class FractalTransform():
         b = self.contraction[0][1]
         c = self.contraction[1][0]
         d = self.contraction[1][1]
+
 
         e = self.translation[0][0]
         f = self.translation[1][0]
@@ -122,6 +127,8 @@ class FractalTransform():
 
         newX = a*x + b*y + e
         newY = c*x + d*y + f
+
+        print("newX and newY", newX, newY)
         return (newX, newY)
 
 class IFS3():
@@ -134,6 +141,7 @@ class IFS3():
         #extract probabilities from each transformation
         p1 = self.listOfTransforms[0].probability
         p2 = self.listOfTransforms[1].probability
+        p3 = self.listOfTransforms[2].probability
 
         #choose a random number between 0 and 1
         n = random.random()
@@ -144,8 +152,10 @@ class IFS3():
         elif n < (p1 + p2):
             return self.listOfTransforms[1]
         # else, choose transformation 3
-        else:
+        elif n < (p1 + p2 + p3):
             return self.listOfTransforms[2]
+        else:
+            return self.listOfTransforms[3]
 
 
     def iterateIFS(self):
@@ -254,6 +264,9 @@ class GUI(Frame):
         self.color = 0
         self.shape = ''
 
+        self.screenDict = {'home': self.homeScreen, 'preChaos': self.preChaosScreen, 'transform': self.inputTransformation}
+
+
         self.homeScreen()
 
 ############### GENERAL METHODS ####################
@@ -273,12 +286,8 @@ class GUI(Frame):
 
     def goBacktoHomeScreen(self):
         '''takes us back to the home screen'''
-        self.moreDots = 0
-        self.color = 0
-        self.canvas.delete("all")
-
-        self.hidePackedWidgets()
-        self.homeScreen()
+        self.previousScreen = 'home'
+        self.goBack()
 
     def packWidget(self, widget, pady=1):
         '''packs a widget (adds to GUI) and adds it to the list of currently packed widgets'''
@@ -291,14 +300,26 @@ class GUI(Frame):
             widget.pack_forget()
         self.packedWidgets.clear()
 
-    def createCanvas(self):
+    def goBackButtons(self):
         #go back button
-        backButton = Button(root, text="Go Back", bg=DEFAULT_BUTTON_COLOR, command=self.goBacktoPreChaos)
+        backButton = Button(root, text="Go Back", bg=DEFAULT_BUTTON_COLOR, command=self.goBack)
         homeButton = Button(root, text="Home", bg=DEFAULT_BUTTON_COLOR, command=self.goBacktoHomeScreen)
 
         self.packWidget(backButton)
         self.packWidget(homeButton)
 
+    def goBack(self):
+        self.moreDots = 0
+        self.color = 0
+        self.hidePackedWidgets()
+
+        #TODO: make better
+        if self.previousScreen == 'preChaos' or self.previousScreen == 'transform':
+            self.canvas.delete("all")
+        #go to whatever the previous screen was
+        self.screenDict[self.previousScreen]()
+
+    def createCanvas(self):
         self.canvas = Canvas(self.root,
                             width = WIDTH,
                             height = HEIGHT,
@@ -347,6 +368,7 @@ class GUI(Frame):
         self.canvas.create_oval(x, y, x+point_size, y+point_size, outline=color_fill, fill=color_fill) # creates points
 
     def preChaosScreen(self):
+        self.previousScreen = 'home'
         self.hidePackedWidgets() #clear previous widgets
 
         explanationText = Text(root, height=6)
@@ -383,6 +405,8 @@ class GUI(Frame):
         for widget in self.preChaosWidgets:
             self.packWidget(widget)
 
+        self.goBackButtons()
+
     def toggleColor(self):
         if self.color == 0:
             #change button color to pressed
@@ -402,7 +426,9 @@ class GUI(Frame):
         denominator = self.ratioDenom.get()
 
         self.hidePackedWidgets() #clear previous widgets
+        self.previousScreen = 'preChaos'
 
+        self.goBackButtons()
         self.createCanvas()
 
         if not(numerator.isnumeric() and denominator.isnumeric()): #if the input is not an integer, give a warning box
@@ -458,24 +484,32 @@ class GUI(Frame):
 ################## Input your own Transformation Methods ##########################
 
     def inputTransformation(self):
+        '''screen for inputting the transformations'''
         self.hidePackedWidgets() #clear previous widgets
+        #go back button
+        self.previousScreen = 'home'
+
+        self.goBackButtons()
 
         explanationText = Text(root, height=15)
         explanationText.insert(tk.END, "Fractals can be created by using probability and recursion of transformations.\nEssentially, you can create a fractal by applying set transformations, each with\nan associated probability of occurring, to produce new points (with x-coordinate\nand y-coordinate). This means that every time you produce a new point, it is\ndone by applying a transformation that is determined based on its probability of\nbeing chosen.\n\nIn this case, you can create 3 different transformations, each of which you can set its probability (p) of occurring. Each transformation consists of a scaling matrix (4 inputs), which scale the x- and y-coordinates, as well as a\ntranslation vector, which shifts the x- and y-coordinates.\n\nNote: The transformations create cooler fractals when the input values are less than 1. Also, the probabilities (p) must sum to 1.")
         self.packWidget(explanationText)
 
         self.inputFrames = []
-        for n in range(1, 4):
+        for n in range(1, 5):
             inputFrame = MatrixInputFrame(n)
             self.inputFrames.append(inputFrame)
             self.packWidget(inputFrame, pady=10)
 
 
-        submit = Button(root, text="Submit", bg=DEFAULT_BUTTON_COLOR, command=self.nextThing)
+        submit = Button(root, text="Submit", bg=DEFAULT_BUTTON_COLOR, command=self.drawCustomTransformsScreen)
         self.packWidget(submit)
 
-    def nextThing(self):
+
+    def drawCustomTransformsScreen(self):
+        '''draws the results of the inputted transformations'''
         # create each transformation object
+
         transformList = []
         for i in range(len(self.inputFrames)):
             transformList.append(FractalTransform(self.inputFrames[i]))
@@ -485,14 +519,22 @@ class GUI(Frame):
 
         self.hidePackedWidgets()
         #TODO: check that probabilities all add up to 1
-
         #TODO: if a field wasn't filled, automatically populate it with 0
+
+        self.previousScreen = 'transform'
+        self.goBackButtons()
+
         self.createCanvas()
 
         self.moreDots = 1
         while self.moreDots == 1:
+
             #draw point
-            self.drawPoint(ifsObj.currentPoint)
+            barnsleyDomain = (-2.1820, 2.6558)
+            barnsleyRange = (0, 9,9983)
+            pointToDraw = shiftPoint(ifsObj.currentPoint, barnsleyDomain, barnsleyRange, (100, 500), (100, 500))
+            print("drawing this point: ", pointToDraw)
+            self.drawPoint(pointToDraw)
             #iterate IFS
             ifsObj.iterateIFS()
 
@@ -500,6 +542,11 @@ class GUI(Frame):
             time.sleep(DRAW_SPEED)
 
 
+def shiftPoint(point, oldDomain, oldRange, newDomain, newRange):
+    '''oldRange is pair of y values, so is newRange. Domain the same but with y values'''
+    xNew = (point[0] - oldDomain[0]) * (newDomain[1] - newDomain[0])/(oldDomain[1]- oldDomain[0])
+    yNew = (point[1] - oldRange[0]) * (newRange[1]- newRange[0])/ (oldRange[1]- oldRange[0])
+    return (xNew, yNew)
 
 
 if __name__ == '__main__':
