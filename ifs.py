@@ -452,8 +452,8 @@ class GUI(Frame):
 
         self.goBackButtons()
 
-        explanationText = Text(root, height=15)
-        explanationText.insert(tk.END, "Fractals can be created by using probability and recursion of transformations.\nEssentially, you can create a fractal by applying set transformations, each with\nan associated probability of occurring, to produce new points (with x-coordinate\nand y-coordinate). This means that every time you produce a new point, it is\ndone by applying a transformation that is determined based on its probability of\nbeing chosen.\n\nIn this case, you can create 3 different transformations, each of which you can set its probability (p) of occurring. Each transformation consists of a scaling matrix (4 inputs), which scale the x- and y-coordinates, as well as a\ntranslation vector, which shifts the x- and y-coordinates.\n\nNote: The transformations create cooler fractals when the input values are less than 1. Also, the probabilities (p) must sum to 1.") #TODO: fix this text
+        explanationText = Text(root, width=150, height=9)
+        explanationText.insert(tk.END, "Fractals can be created by using probability and recursion of transformations. Essentially, you can create a fractal by applying set transformations, each with an associated probability of occurring, to produce new points (with x-coordinate and y-coordinate). This means that every time you produce a new point, it is done by applying a transformation that is determined based on its probability of being chosen.\n\nIn this case, you can create 3 different transformations, each of which you can set its probability (p) of occurring. Each transformation consists of a scaling matrix (4 inputs), which scale the x- and y-coordinates, as well as a translation vector, which shifts the x- and y-coordinates.\n\nNote: The transformations create cooler fractals when the input values are less than 1. Also, the probabilities (p) must sum to 1.")
         explanationText["state"] = DISABLED #make it non-editable
         self.packWidget(explanationText)
 
