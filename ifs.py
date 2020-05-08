@@ -565,7 +565,11 @@ class GUI(Frame):
         minX = CANVAS_PAD
         maxY = HEIGHT - CANVAS_PAD
         minY = CANVAS_PAD
+<<<<<<< HEAD
         xNew = (point[0] - oldDomain[0]) * (maxX - minX)/(oldDomain[1]- oldDomain[0]) + CANVAS_PAD
+=======
+        xNew = (point[0] - oldDomain[0]) * (maxX - minX)/(oldDomain[1]- oldDomain[0])+50 #TODO: the padding needs to shift here
+>>>>>>> c42f2e10b36f8f9c88770ce2dc43de58a50bafd1
         yNew = (point[1] - oldRange[0]) * (maxY - minY)/ (oldRange[1]- oldRange[0])
         yNew = maxY - yNew #do this bc the canvas coordinates have 0 at the top and then go down
         return (xNew, yNew)
