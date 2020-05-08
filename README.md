@@ -7,6 +7,6 @@ Download `ifs.py`. Open the terminal or command line, navigate to the folder tha
 ```
 python ifs.py
 ``` 
-in order to run it. 
+in order to run the file.  
 
 We hope you enjoy! 
