@@ -8,7 +8,7 @@ Python 3.7.4
 tkinter 8.6
 
 ### Instructions
-First, make sure `tkinter` (a Python package) is installed on your computer. You can check this by opening Python and typing 
+First, make sure `tkinter` (a Python GUI package) is installed on your computer. You can check this by opening Python and typing 
 ```
 >>> import tkinter
 ```
