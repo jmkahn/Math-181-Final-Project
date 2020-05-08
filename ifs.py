@@ -19,9 +19,11 @@ DRAW_SPEED = 0.000001 #wait length between drawing points
 RADIUS = 400
 CENTER = (400, 400) # center of the starting vertices
 
-NUM_ITERATIONS = 200 # number of times to iterate before setting autoscaler (bigger = more likely to be accurate (up to a point))
+NUM_ITERATIONS = 2000 # number of times to iterate before setting autoscaler (bigger = more accurate (up to a point))
 
-DRAW_COLOR_LIST = ['#00aedb', '#a200ff', '#f47835', '#332C96', '#8ec127', '#d41243'] #source: https://www.color-hex.com/color-palette/471 (with a sixth color added from  https://www.schemecolor.com/faster-and-sharper.php)
+CHAOS_COLOR_LIST = ['#00aedb', '#a200ff', '#f47835', '#332C96', '#8ec127', '#d41243'] #source: https://www.color-hex.com/color-palette/471 (with a sixth color added from  https://www.schemecolor.com/faster-and-sharper.php)
+# IFS_COLOR_LIST = ['#005B7F', '#00A593', '#ACCF71', '#028745']
+IFS_COLOR_LIST = ['#7C10A3', '#341EAA', '#1559A0', '#DE3777']
 
 #vertex lists
 # vertices source: https://mathopenref.com/coordpolycalc.html
@@ -130,6 +132,7 @@ class IFS3():
         transformation = self.pickTransformation()
         #apply that transformation to the current point and update current point
         self.currentPoint = transformation.transformPoint(self.currentPoint)
+        return self.listOfTransforms.index(transformation)
 
     def resetCurrentPoint(self):
         self.currentPoint = (0, 0)
@@ -148,7 +151,7 @@ class MatrixInputFrame(Frame):
             self.rowconfigure(n, pad=3)
 
         label1 = Label(self, text="Transformation "+str(number))
-        label1.grid(row=0)
+        label1.grid(row=0, column=1)
 
         paren1 = Label(self, text="(")
         paren1.config(font=("Courier", 22))
@@ -206,8 +209,8 @@ class MatrixInputFrame(Frame):
 
         self.allFields = [aEntry, bEntry, cEntry, dEntry, eEntry, fEntry, pEntry]
         #populate all the fields with 0 to start
-        # for field in self.allFields:
-        #     field.insert(0, "0")
+        for field in self.allFields:
+            field.insert(0, "0")
 
 class GUI(Frame):
 
@@ -275,9 +278,9 @@ class GUI(Frame):
 
     def homeScreen(self):
         '''creates the interface for the home screen'''
-        welcome = Text(root, height=18) #welcome text box
+        welcome = Text(root, height=17) #welcome text box
         self.packWidget(welcome)
-        welcome.insert(tk.END, "Welcome to an interactive exploration of Iterated Fractal Systems (IFS) \nby Jenna and Cassidy!\n\nFor some math background, an IFS is a complete metric space paired with a\nfinite set of contraction mappings. A cool theorem states that the set of\nall contraction mappings of an IFS is also a contraction mapping (resulting\nin fractals!). Because of this, every IFS has a unique fixed point called\nan attractor. In other words, an IFS is a metric space that consists of many\nsequences that converge to exactly one unique fixed point called an attractor.\n\nIn this interactive tool, we hope to help you understand fractals better by\ngiving you the tools to visualize how a fractal is generated. We have 2 options\nbelow: playing with preset options that produce fractals for different polygons\nusing the Chaos Game, or entering custom transformations that creates your own\nfractal pattern for a triangle.\n\nFeel free to choose between the 2 options by clicking 1 of the buttons below! ")
+        welcome.insert(tk.END, "Welcome to an interactive exploration of Iterated Fractal Systems (IFS) \nby Jenna and Cassidy!\n\nFor some math background, an IFS is a complete metric space paired with a\nfinite set of contraction mappings. A cool theorem states that the set of\nall contraction mappings of an IFS is also a contraction mapping (resulting\nin fractals!). Because of this, every IFS has a unique fixed point called\nan attractor. In other words, an IFS is a metric space that consists of many\nsequences that converge to exactly one unique fixed point called an attractor.\n\nIn this interactive tool, we hope to help you understand fractals better by\ngiving you the tools to visualize how a fractal is generated. We have 2 options\nbelow: playing with preset options that produce fractals for different polygons\nusing the Chaos Game, or entering custom transformations that creates your own\nfractal pattern for a triangle.\n\nFeel free to choose between the 2 options by clicking a button below! ") #TODO: add text explaining IFS in my words here, update description
         welcome["state"] = DISABLED
         #make Chaos game button
         chaosButton = Button(root, text= "Let's play the Chaos Game", command=self.preChaosScreen)
@@ -286,6 +289,14 @@ class GUI(Frame):
         otherButton =  Button(root, text="Enter a custom transformation", command=self.inputTransformation)
         self.packWidget(otherButton)
 
+    def toggleColor(self):
+        if self.color == 0:
+            #change button color to pressed
+            self.colorToggle['background'] = CLICKED_BUTTON_COLOR
+        else:
+            #change button color to white
+            self.colorToggle['background'] = DEFAULT_BUTTON_COLOR
+        self.color = (self.color + 1) % 2
 
 #############CHAOS GAME METHODS####################
     #functions to set which shape we'll play the chaos game with
@@ -337,10 +348,9 @@ class GUI(Frame):
         mainFrame = Frame(root)
         self.packWidget(mainFrame, side=TOP)
 
-        explanationText = Text(mainFrame, height=6)
-        explanationText.insert(tk.END, "Chaos Game is a recursive algorithm that produces fractals. It starts by\nchoosing a random point inside a regular n-sided polygon, such as a triangle,\nsquare, pentagon, or hexagon. Then, draw the next point a fraction (contraction\nratio) of the distance between the first random point and a randomly chosen\nvertex of the n original vertices of the polygon. The process continues by\nrepeatedly drawing new points using the same fractional distance idea.")
+        explanationText = Text(mainFrame, height=11)
+        explanationText.insert(tk.END, "The Chaos Game is a recursive algorithm that produces fractals. It starts by\nchoosing a random point inside a regular n-sided polygon, such as a triangle,\nsquare, pentagon, or hexagon. Then, it draws the next point a fraction\n(contraction ratio) of the distance between the first random point and a\nrandomly chosen vertex. The process continues, drawing a new point between the\nprevious point and a new vertex at every step.\n\nYou might think this process would just draw random dots everywhere, but you'll be surprised by the beautiful patterns that can be produced! Play around with\ndifferent starting vertices and contraction ratios and see what you can make \n(Hint: A triangle with contraction ratio of 1/2 will produce a very famous fractal)!")
         explanationText["state"] = DISABLED
-        #TODO: give more hints about how to play it fun
         explanationText.pack()
 
         # create buttons for user to select number of vertices
@@ -364,8 +374,8 @@ class GUI(Frame):
         #create box for user to input contraction ratio
         ratioFrame = Frame(mainFrame)
         ratioFrame.pack(pady=15)
-        ratioLabel = Label(ratioFrame, text="Enter a fraction. This is your contraction ratio.")
-        noteLabel = Label(ratioFrame, text="(Note: contraction ratios less than 1 tend to work best)")
+        ratioLabel = Label(ratioFrame, text="Enter a fraction; this is your contraction ratio.")
+        noteLabel = Label(ratioFrame, text="(Note: contraction ratios less than 1/2 tend to work best)")
         ratioLabel.pack()
         noteLabel.pack()
 
@@ -385,15 +395,6 @@ class GUI(Frame):
         #submit button
         ratioSubmit = Button(mainFrame, text="Submit", bg=DEFAULT_BUTTON_COLOR, command=self.executeChaos)
         ratioSubmit.pack()
-
-    def toggleColor(self):
-        if self.color == 0:
-            #change button color to pressed
-            self.colorToggle['background'] = CLICKED_BUTTON_COLOR
-        else:
-            #change button color to white
-            self.colorToggle['background'] = DEFAULT_BUTTON_COLOR
-        self.color = (self.color + 1) % 2
 
     def executeChaos(self):
         '''creates the screen that comes after the user inputs their settings.
@@ -434,7 +435,7 @@ class GUI(Frame):
             game.applyTransformation(game.currentPoint, currentVertex)
 
             if self.color == 1: #if coloring is turned on
-                currentColor = DRAW_COLOR_LIST[vertexIndex]
+                currentColor = CHAOS_COLOR_LIST[vertexIndex]
                 self.drawPoint(game.currentPoint, POINT_SIZE, currentColor) # draw the translated point
             else:
                 self.drawPoint(game.currentPoint, POINT_SIZE) # draw the translated point
@@ -452,10 +453,25 @@ class GUI(Frame):
 
         self.goBackButtons()
 
-        explanationText = Text(root, height=15)
-        explanationText.insert(tk.END, "Fractals can be created by using probability and recursion of transformations.\nEssentially, you can create a fractal by applying set transformations, each with\nan associated probability of occurring, to produce new points (with x-coordinate\nand y-coordinate). This means that every time you produce a new point, it is\ndone by applying a transformation that is determined based on its probability of\nbeing chosen.\n\nIn this case, you can create 3 different transformations, each of which you can set its probability (p) of occurring. Each transformation consists of a scaling matrix (4 inputs), which scale the x- and y-coordinates, as well as a\ntranslation vector, which shifts the x- and y-coordinates.\n\nNote: The transformations create cooler fractals when the input values are less than 1. Also, the probabilities (p) must sum to 1.") #TODO: fix this text
+        explanationText = Text(root, height=19)
+        explanationText.insert(tk.END, "Fractals can be created by using probability and recursive transformations. In\nthis game, we start with a point at the origin. Then a transformation is\nrandomly chosen from a set of transformations and applied to that point. The new\npoint is the subject of the next transformation. This process repeats\nindefinitely. For transformations which contract, the resultant set of points\noccupies a finite, self-similar region. In other words, drawing the points\nproduces a fractal! \n\nIn this window, you can input up to 4 different affine transformations, each of\nwhich has a probability p of occurring at each step (Note that the\nprobabilities must sum to 1). Each transformation consists of a contraction matrix (4 inputs), which scales and rotates the x- and y-coordinates, as well as a\ntranslation vector, which shifts the x- and y-coordinates.\n\n'Add coloring' will color each point based on which transformation was selected to draw it.\n\nClick on the buttons below to enter some preset transformations (source: https://cs.lmu.edu/~ray/notes/ifs/). Then experiment with setting your own!")
         explanationText["state"] = DISABLED #make it non-editable
         self.packWidget(explanationText)
+
+        presetsFrame = Frame(root)
+        self.packWidget(presetsFrame)
+        barnsley = Button(presetsFrame, text="Barnsley's fern", bg=DEFAULT_BUTTON_COLOR, command=self.populateBarnsley)
+        angle = Button(presetsFrame, text="Angle", bg=DEFAULT_BUTTON_COLOR, command=self.populateAngle)
+        coral = Button(presetsFrame, text="Coral", bg=DEFAULT_BUTTON_COLOR, command=self.populateCoral)
+        shell = Button(presetsFrame, text="Shell Spiral", bg=DEFAULT_BUTTON_COLOR, command=self.populateSeashell)
+        sierpinski = Button(presetsFrame, text="Sierpinski", bg=DEFAULT_BUTTON_COLOR, command=self.populateSierpinski)
+        forest = Button(presetsFrame, text="Forest", bg=DEFAULT_BUTTON_COLOR, command=self.populateForest)
+        leaf = Button(presetsFrame, text="Leaves", bg=DEFAULT_BUTTON_COLOR, command=self.populateLeaves)
+
+        buttonList = [barnsley, angle, coral, shell, sierpinski, forest, leaf]
+        for button in buttonList:
+            button.pack(side=LEFT, pady=20, padx=30)
+
 
         transformationsFrame = Frame(root)
         self.packWidget(transformationsFrame)
@@ -464,65 +480,68 @@ class GUI(Frame):
         for n in range(1, 5):
             inputFrame = MatrixInputFrame(n, transformationsFrame)
             self.inputFrames.append(inputFrame)
-            inputFrame.pack(pady=10)
-
+            # inputFrame.pack(pady=10)
+        self.inputFrames[0].grid(row=0, column=0, pady=15, padx=25)
+        self.inputFrames[1].grid(row=1, column=0, pady=15, padx=25)
+        self.inputFrames[2].grid(row=0, column=1, pady=15, padx=25)
+        self.inputFrames[3].grid(row=1, column=1, pady=15, padx=25)
 
         buttonFrame = Frame(root)
         self.packWidget(buttonFrame)
+        self.colorToggle = Button(buttonFrame, text="Add coloring", bg=DEFAULT_BUTTON_COLOR, command=self.toggleColor)
+        self.colorToggle.pack(pady=10)
         submit = Button(buttonFrame, text="Submit", bg=DEFAULT_BUTTON_COLOR, command=self.drawCustomTransformsScreen)
         submit.pack()
-
-        # zeros = Button(buttonFrame, text="Fill blanks", bg=DEFAULT_BUTTON_COLOR, command=self.fillZeros)
-        # zeros.pack()
-
 
     def drawCustomTransformsScreen(self):
         '''draws the results of the inputted transformations'''
         # create each transformation object
-
         transformList = []
         for i in range(len(self.inputFrames)):
-            transformList.append(FractalTransform(self.inputFrames[i])) #TODO: error  here when making FractalTransforms
-
-        # create the set of transformations object (IFS3)
-        ifsObj = IFS3(transformList)
+            # only add non-blank transformations to list
+            currentFrame = self.inputFrames[i]
+            if float(currentFrame.allFields[6].get()) > 0: #if the probability is greater than 0
+                fractalTransform = FractalTransform(currentFrame)
+                transformList.append(fractalTransform)
+        self.ifsObj = IFS3(transformList) # create the set of transformations object (IFS3)
 
         self.hidePackedWidgets()
         #TODO: check that probabilities all add up to 1
-        #TODO: if a field wasn't filled, automatically populate it with 0
-
         self.previousScreen = 'transform'
-        self.goBackButtons()
+        self.goBackButtons() #create back buttons
+        self.createCanvas() #make the canvas object
+        dim = self.autoScale() #create dimensions
+        self.drawIFS(dim) # iterate the IFS and draw the points
 
-        self.createCanvas()
 
-        dim = self.autoScale(ifsObj)
-
+    def drawIFS(self, dim):
+        '''iterates the IFS and draws the points'''
+        transformIndex = 0
         self.moreDots = 1
         while self.moreDots == 1:
-
             #draw point
-            # barnsleyDomain = (-2.1820, 2.6558)
-            # barnsleyRange = (0, 9,9983)
+            pointToDraw = self.shiftPoint(self.ifsObj.currentPoint, dim)
+            if self.color == 1: #if coloring is turned on
+                currentColor = IFS_COLOR_LIST[transformIndex]
+                self.drawPoint(pointToDraw, POINT_SIZE, currentColor) # draw the translated point
+            else:
+                self.drawPoint(pointToDraw, POINT_SIZE) # draw the translated point
 
-            pointToDraw = self.shiftPoint(ifsObj.currentPoint, dim)
-            self.drawPoint(pointToDraw)
             #iterate IFS
-            ifsObj.iterateIFS()
-
+            #iterating the IFS return the index of the transformation that was chosen (used to color)
+            transformIndex = self.ifsObj.iterateIFS()
             self.canvas.update()
-            time.sleep(DRAW_SPEED)
+            # time.sleep(DRAW_SPEED)
 
-
-    def autoScale(self, ifsObj):
+    def autoScale(self):
         extremeValues = [0, 0, 0, 0] #list with format minX, maxX, minY, maxY
         iterations = 0
 
         while iterations < NUM_ITERATIONS:
-            ifsObj.iterateIFS()
+            self.ifsObj.iterateIFS()
 
-            x = ifsObj.currentPoint[0]
-            y = ifsObj.currentPoint[1]
+            x = self.ifsObj.currentPoint[0]
+            y = self.ifsObj.currentPoint[1]
 
             if x < extremeValues[0]:
                 extremeValues[0] = x
@@ -533,22 +552,10 @@ class GUI(Frame):
             if y > extremeValues[3]:
                 extremeValues[3] = y
             iterations += 1
-        ifsObj.resetCurrentPoint()
-        print('extreme values:', extremeValues)
-
+        self.ifsObj.resetCurrentPoint()
         point1 = (extremeValues[0], extremeValues[2])
         point2 = (extremeValues[1], extremeValues[3])
-        print('shift small', self.shiftPoint(point1, extremeValues))
-        print('shift big', self.shiftPoint(point2, extremeValues))
-
         return extremeValues
-    #
-    # def fillZeros(self):
-    #     for frame in self.inputframes:
-    #         for field in frame.allFields:
-    #             entry = field.get()
-    #     pass
-    #
 
     def shiftPoint(self, point, oldDim):
         '''old Dim is a list of 4 values: minX, maxX, minY, maxY'''
@@ -556,24 +563,78 @@ class GUI(Frame):
         oldRange = oldDim[2:]
         maxX = WIDTH - CANVAS_PAD
         minX = CANVAS_PAD
-
         maxY = HEIGHT - CANVAS_PAD
         minY = CANVAS_PAD
-        xNew = (point[0] - oldDomain[0]) * (maxX - minX)/(oldDomain[1]- oldDomain[0]) #TODO: the padding needs to shift here
+        xNew = (point[0] - oldDomain[0]) * (maxX - minX)/(oldDomain[1]- oldDomain[0]) + CANVAS_PAD
         yNew = (point[1] - oldRange[0]) * (maxY - minY)/ (oldRange[1]- oldRange[0])
         yNew = maxY - yNew #do this bc the canvas coordinates have 0 at the top and then go down
         return (xNew, yNew)
 
+    def populateBarnsley(self):
+        '''populates the entry fields with the values for barnsley's fern'''
+        barnsleyValues = [[0, 0, 0, 0.16, 0, 0, 0.01],
+        [ 0.85, 0.04, -0.04, 0.85, 0, 1.60, 0.85],
+        [0.20, -0.26, 0.23, 0.22, 0, 1.60, 0.07],
+        [-0.15, 0.28, 0.26, 0.24, 0, 0.44, 0.07]]
+        self.populate(barnsleyValues)
+
+
+    def populateAngle(self):
+        '''populates the entry fields with the values for a cool angle thing'''
+        angleValues = [[0.5, 0.0, 0.0, 0.5, -4.5, 0.002, 0.33],
+        [0.5, 0.0, 0.0, 0.5, 4.6, 0.002, 0.33],
+        [0.32139, 0.38302, -0.38302, 0.32139, 1.09, 9.5, 0.33],
+        [0, 0, 0, 0, 0, 0, 0]]
+        self.populate(angleValues)
+
+    def populateCoral(self):
+        coralValues = [[-0.16666667, -0.1666667, 0.16666667, -0.1666667, 0, 0,  0.163],
+        [0.83333333, 0.25, -0.25,  0.8333333, -0.1666667, -0.166667,  0.600],
+        [0.33333333, -0.0833333,  0.08333333,  0.3333333,  0.0833333,  0.666667,  0.237],
+        [0, 0, 0, 0, 0, 0, 0]]
+        self.populate(coralValues)
+
+    def populateSeashell(self):
+        newValues = [[0.8517, -0.3736, 0.3736, 0.7517,  0.0000,  0.000, 0.7],
+        [0.3000,  0.1000, -0.1000, 0.2000,  1.0000, -0.364,  0.1],
+        [0.3000,  0.1000, -0.1000, 0.2000, -0.3640,  1.000,  0.1],
+        [0.3000,  0.1000, -0.0000, 0.200,0 -0.7280, -0.728, 0.1]]
+        self.populate(newValues)
+
+    def populateSierpinski(self):
+        sier = [[0.5,0,0, 0.5, 0,  0,  0.3333],
+        [0.5, 0, 0, 0.5,  0.50,  0,  0.3333],
+        [0.5, 0, 0, 0.5,  0.25,  0.433,  0.3334],
+        [0, 0, 0, 0, 0, 0, 0]]
+        self.populate(sier)
+
+    def populateForest(self):
+        forest = [[-0.632407, -0.614815,-0.545370, 0.659259, 3.840822, 1.282321, 0.888128],
+        [-0.036111,  0.444444,  0.210185, 0.037037, 2.071081, 8.330552, 0.111872],
+        [0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0]]
+        self.populate(forest)
+
+    def populateLeaves(self):
+        leaf = [[0.40, 0.00,0.00, 0.40,  0.00,  0.00,  0.20],
+        [0.55,   0.00,  0.00,  0.55,  0.00,  0.20,   0.30],
+        [0.31,  0.31,  -0.31, 0.31,  0.10,  0.10,  0.25],
+        [0.31,  -0.31,  0.31,  0.31, -0.10,  0.10,   0.25]]
+        self.populate(leaf)
+
+
+    def populate(self, values):
+        for i in range(len(self.inputFrames)):
+            currentFrame = self.inputFrames[i]
+            currentValue = values[i]
+            for j in range(len(currentFrame.allFields)):
+                currentFrame.allFields[j].delete(0, 'end')
+                currentFrame.allFields[j].insert(0, str(currentValue[j]))
+
 
 if __name__ == '__main__':
-
     root = Tk() #make main window
-
     root.state('zoomed') #maximize window
     root.title("Math 181 Final Project")
-
-    #game.start()
-
     gui = GUI(root) #initialize buttons and stuff
-
     root.mainloop()
